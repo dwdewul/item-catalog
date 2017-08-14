@@ -8,6 +8,8 @@
         <li><strong>{{ message }}</strong></li>
       {% endfor %}
     </ul>
+  {% else %}
+    <p>No messages</p>
   {% endif %}
 {% endwith %}
 {% for c in categories  %}

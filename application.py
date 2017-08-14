@@ -26,6 +26,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
     'web']['client_id']
+
 ################################################################################
 #####                        Authentication                                #####
 ################################################################################
@@ -111,7 +112,9 @@ def gconnect():
     login_session['email'] = data['email']
 
     flash("you are now logged in as {}".format(login_session['username']))
-    return
+    for rx in login_session:
+        print(rx)
+    return "Hello, {}".format(login_session['username'])
 
 
 @app.route('/gdisconnect')
@@ -139,7 +142,7 @@ def gdisconnect():
         del login_session['picture']
         response = make_response(json.dumps('Successfully disconnected.'), 200)
         response.headers['Content-Type'] = 'application/json'
-        return response
+        return render_template('logout.html', response=response)
     else:
         response = make_response(json.dumps(
             'Failed to revoke token for given user.', 400))
@@ -153,8 +156,9 @@ def gdisconnect():
 @app.route('/')
 @app.route('/home')
 def showCatalog():
+    user = login_session.get('username')
     categories = session.query(Category).all()
-    return render_template('home.html', categories=categories)
+    return render_template('home.html', categories=categories, user=user)
 
 
 ################################################################################
