@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body %}
+<h1>Welcome!</h1>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li><strong>{{ message }}</strong></li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+{% for c in categories  %}
+<p>{{c.name}}</p>
+{% endfor %}
+{% endblock %}
