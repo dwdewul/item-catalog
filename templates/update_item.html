@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block body %}
+<h2>Change the name for {{editItem.name}}?</h2>
+<form action="{{ url_for('editItem', category_name=category_name, item_name=item_name, editItem=editItem.name)}}" method='post'>
+  <div class="form-group col-md-6">
+    <label for="title">Title:</label>
+    <input class="form-control" type="text" name="title" placeholder="{{editItem.title}}">
+    <label for="description">Description:</label>
+    <textarea class="form-control" name="description" rows="8" cols="80"  placeholder="{{editItem.description}}"></textarea>
+    <div class="form-group">
+      <input class="btn btn-danger" type='submit' value='Submit'>
+      <a class="btn btn-primary" href="{{ url_for('showCategory', category_name=category_name)}}">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

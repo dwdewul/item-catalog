@@ -1,3 +1,12 @@
 .navbar-brand {
   font-family: 'Sedgwick Ave', cursive;
 }
+
+.items {
+  border: 2px #3f4ba1 solid;
+  border-radius: 5px;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  margin-top: 5px;
+  box-shadow: 3px 3px 5px grey;
+}

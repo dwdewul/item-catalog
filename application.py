@@ -2,8 +2,8 @@
 #####                           Imports                                    #####
 ################################################################################
 from flask import (Flask, render_template, request,
-redirect, jsonify, url_for, flash)
-from sqlalchemy import create_engine
+                   redirect, jsonify, url_for, flash)
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from db_setup import Base, User, Category, Item
 from flask import session as login_session
@@ -30,6 +30,7 @@ CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
 ################################################################################
 #####                        Authentication                                #####
 ################################################################################
+
 
 @app.route('/login')
 def showLogin():
@@ -112,8 +113,6 @@ def gconnect():
     login_session['email'] = data['email']
 
     flash("you are now logged in as {}".format(login_session['username']))
-    for rx in login_session:
-        print(rx)
     return "Hello, {}".format(login_session['username'])
 
 
@@ -150,20 +149,136 @@ def gdisconnect():
         return response
 
 ################################################################################
+#####                         Helper Functions                             #####
+################################################################################
+
+
+def get_items(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    items = session.query(Item).filter_by(category_id=category.id)
+    return items
+
+
+def get_single_item(category_name, item_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    item = session.query(Item).filter_by(
+        category_id=category.id, title=item_name).first()
+    return item
+
+
+def get_category(category_name):
+    category = session.query(Category).filter_by(name=category_name).one()
+    return category
+
+
+def get_user_email():
+    if login_session['username']:
+        return login_session['email']
+
+################################################################################
 #####                         Routing                                      #####
 ################################################################################
+
 
 @app.route('/')
 @app.route('/home')
 def showCatalog():
     user = login_session.get('username')
     categories = session.query(Category).all()
-    return render_template('home.html', categories=categories, user=user)
+    items = session.query(Item).order_by(Item.created_at.desc()).limit(6).all()
+    return render_template('home.html', categories=categories, user=user, items=items)
+
+
+@app.route('/json')
+def catalogJSON():
+    items = session.query(Item).all()
+    return jsonify([i.serialize for i in items])
+
+
+@app.route('/<string:category_name>/items')
+def showCategory(category_name):
+    user = login_session.get('username')
+    category = get_category(category_name)
+    items = get_items(category_name)
+    return render_template('items.html', category_name=category.name, items=items, user=user)
+
+
+@app.route('/<string:category_name>/create', methods=['GET', 'POST'])
+def createItem(category_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    user = login_session.get('username')
+    category = get_category(category_name)
+
+    if request.method == 'POST':
+        newItem = Item(
+            title=request.form['title'],
+            description=request.form['description'],
+            category_id=category.id,
+            user_id=login_session.get('email'))
+        session.add(newItem)
+        session.commit()
+
+        flash('Item {}'.format(newItem.title))
+        return redirect(url_for('showCategory', category_name=category_name, user=user))
+    else:
+        return render_template('create_item.html', category_name=category_name, user=user)
+
+
+@app.route('/<string:category_name>/edit/<string:item_name>', methods=['GET', 'POST'])
+def editItem(category_name, item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+
+    user = login_session.get('username')
+    u_email = get_user_email()
+    category = get_category(category_name)
+    editItem = get_single_item(category_name, item_name)
+
+    if request.method == 'POST':
+        if u_email == editItem.user_id:
+            if request.form['title']:
+                editItem.title = request.form['title']
+
+            if request.form['description']:
+                editItem.description = request.form['description']
+
+            session.add(editItem)
+            session.commit()
+        else:
+            flash('You do not have the authorization to edit that item')
+
+        return redirect(url_for('showCategory', category_name=category_name, user=user))
+
+    else:
+        return render_template('update_item.html', user=user, category_name=category_name, item_name=editItem.title, editItem=editItem)
+
+
+@app.route('/<string:category_name>/delete/<string:item_name>', methods=['GET', 'POST'])
+def deleteItem(category_name, item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+    user = login_session.get('username')
+    u_email = get_user_email()
+    category = get_category(category_name)
+    deleteItem = get_single_item(category_name, item_name)
+
+    if request.method == 'POST':
+        if u_email == deleteItem.user_id:
+            session.delete(deleteItem)
+            session.commit()
+        else:
+            flash('You do not have the authorization to delete that item')
+        return redirect(url_for('showCategory', category_name=category_name, user=user))
+
+    else:
+        return render_template('delete_item.html', user=user, category_name=category_name, item_name=deleteItem.title)
 
 
 ################################################################################
 #####                         Run App                                      #####
 ################################################################################
+
 
 if __name__ == '__main__':
     app.secret_key = 'super_secret_key'

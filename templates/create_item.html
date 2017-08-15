@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block body %}
+<form action="{{ url_for('createItem', category_name=category_name)}}" method='POST'>
+  <div class="form-group col-md-6">
+    <label for="title">Title:</label>
+    <input class="form-control" type="text" name="title">
+    <label for="description">Description:</label>
+    <textarea class="form-control" name="description" rows="8" cols="80"></textarea>
+    <div class="form-group">
+      <input class="btn btn-success" type='submit' value='Create'>
+      <a class="btn btn-primary" href="{{ url_for('showCategory', category_name=category_name)}}">Cancel</a>
+    </div>
+  </div>
+</form>
+{% endblock %}

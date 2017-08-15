@@ -1,18 +1,29 @@
 {% extends "base.html" %}
 {% block body %}
-<h1>Welcome!</h1>
 {% with messages = get_flashed_messages() %}
   {% if messages %}
-    <ul>
       {% for message in messages %}
-        <li><strong>{{ message }}</strong></li>
+      <div class="alert alert-success">
+        <strong>{{ message }}</strong>
+      </div>
       {% endfor %}
-    </ul>
-  {% else %}
-    <p>No messages</p>
   {% endif %}
 {% endwith %}
+<div class="col-md-12 text-center items">
+  <h2>Categories</h2>
+</div>
 {% for c in categories  %}
-<p>{{c.name}}</p>
+  <div class="col-md-4 text-center">
+    <p><a href="{{ url_for('showCategory', category_name=c.name )}}">{{c.name}}</a></p>
+  </div>
 {% endfor %}
+<div class="col-md-12 text-center items">
+  <h2>Latest Items</h2>
+</div>
+{% for x in items %}
+<div class="col-md-4 text-center">
+  <p><a href="#">{{x.title}}</a></p>
+</div>
+{% endfor %}
+
 {% endblock %}

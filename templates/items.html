@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block body %}
+<a href="{{url_for('createItem', category_name=category_name)}}"
+   class="btn btn-lg btn-primary">
+Create a new item
+</a>
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+      {% for message in messages %}
+      <div class="alert alert-info">
+        <strong>{{ message }}</strong>
+      </div>
+      {% endfor %}
+  {% endif %}
+{% endwith %}
+{% for item in items %}
+<div class="col-md-12 text-center items">
+  <h3>{{item.title}}</h3>
+  <p>{{item.description}}</p>
+  <p>Posted by: {{item.user_id}}</p>
+  <a href="{{url_for('editItem', category_name=item.category.name, item_name=item.title)}}"
+    class="btn btn-primary">
+    Edit
+  </a>
+  <a href="{{url_for('deleteItem', category_name=item.category.name, item_name=item.title)}}"
+    class="btn btn-danger">
+    Delete
+  </a>
+</div>
+{% endfor %}
+{% endblock %}

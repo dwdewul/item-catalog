@@ -1,5 +1,6 @@
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+import datetime
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
@@ -43,6 +44,7 @@ class Item(Base):
     title = Column(String(100), nullable=False)
     id = Column(Integer, primary_key=True)
     description = Column(String(250))
+    created_at = Column(DateTime, default=datetime.datetime.utcnow)
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
     user_id = Column(Integer, ForeignKey('user.id'))
@@ -51,9 +53,10 @@ class Item(Base):
     @property
     def serialize(self):
         return {
-            'name': self.name,
+            'title': self.title,
             'description': self.description,
             'id': self.id,
+            'created_at': self.created_at,
             'category_id': self.category_id,
             'category': self.category.name,
         }
