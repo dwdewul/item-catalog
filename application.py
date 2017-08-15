@@ -1,6 +1,6 @@
-################################################################################
-#####                           Imports                                    #####
-################################################################################
+###############################################################################
+#                          Imports
+###############################################################################
 from flask import (Flask, render_template, request,
                    redirect, jsonify, url_for, flash)
 from sqlalchemy import create_engine, desc
@@ -16,9 +16,9 @@ import json
 from flask import make_response
 import requests
 
-################################################################################
-#####                           Globals                                    #####
-################################################################################
+###############################################################################
+#                          Globals
+###############################################################################
 app = Flask(__name__)
 engine = create_engine('sqlite:///category.db')
 Base.metadata.bind = engine
@@ -27,9 +27,9 @@ session = DBSession()
 CLIENT_ID = json.loads(open('client_secrets.json', 'r').read())[
     'web']['client_id']
 
-################################################################################
-#####                        Authentication                                #####
-################################################################################
+###############################################################################
+#                        Authentication
+###############################################################################
 
 
 @app.route('/login')
@@ -92,8 +92,9 @@ def gconnect():
     stored_access_token = login_session.get('access_token')
     stored_gplus_id = login_session.get('gplus_id')
     if stored_access_token is not None and gplus_id == stored_gplus_id:
-        response = make_response(json.dumps('Current user is already connected.'),
-                                 200)
+        response = make_response(
+            json.dumps('Current user is already connected.'),
+            200)
         response.headers['Content-Type'] = 'application/json'
         return response
 
@@ -128,7 +129,8 @@ def gdisconnect():
     print 'In gdisconnect access token is %s', access_token
     print 'User name is: '
     print login_session['username']
-    url = 'https://accounts.google.com/o/oauth2/revoke?token=%s' % login_session['access_token']
+    url = ('https://accounts.google.com/o/oauth2/revoke?token=%s'
+           % login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
     print 'result is '
@@ -148,9 +150,9 @@ def gdisconnect():
         response.headers['Content-Type'] = 'application/json'
         return response
 
-################################################################################
-#####                         Helper Functions                             #####
-################################################################################
+###############################################################################
+#                         Helper Functions
+###############################################################################
 
 
 def get_items(category_name):
@@ -175,9 +177,10 @@ def get_user_email():
     if login_session['username']:
         return login_session['email']
 
-################################################################################
-#####                         JSON Endpoints                               #####
-################################################################################
+###############################################################################
+#                         JSON Endpoints
+###############################################################################
+
 
 @app.route('/json')
 def catalogJSON():
@@ -196,9 +199,9 @@ def singleItemJSON(category_name, item_name):
     item = get_single_item(category_name, item_name)
     return jsonify([item.serialize])
 
-################################################################################
-#####                         Routing                                      #####
-################################################################################
+###############################################################################
+#                         Routing
+###############################################################################
 
 
 @app.route('/')
@@ -207,7 +210,8 @@ def showCatalog():
     user = login_session.get('username')
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.created_at.desc()).limit(6).all()
-    return render_template('home.html', categories=categories, user=user, items=items)
+    return render_template(
+        'home.html', categories=categories, user=user, items=items)
 
 
 @app.route('/<string:category_name>/items')
@@ -215,7 +219,8 @@ def showCategory(category_name):
     user = login_session.get('username')
     category = get_category(category_name)
     items = get_items(category_name)
-    return render_template('items.html', category_name=category.name, items=items, user=user)
+    return render_template(
+        'items.html', category_name=category.name, items=items, user=user)
 
 
 @app.route('/<string:category_name>/create', methods=['GET', 'POST'])
@@ -235,12 +240,15 @@ def createItem(category_name):
         session.commit()
 
         flash('Item {}'.format(newItem.title))
-        return redirect(url_for('showCategory', category_name=category_name, user=user))
+        return redirect(url_for(
+            'showCategory', category_name=category_name, user=user))
     else:
-        return render_template('create_item.html', category_name=category_name, user=user)
+        return render_template(
+            'create_item.html', category_name=category_name, user=user)
 
 
-@app.route('/<string:category_name>/edit/<string:item_name>', methods=['GET', 'POST'])
+@app.route('/<string:category_name>/edit/<string:item_name>',
+           methods=['GET', 'POST'])
 def editItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
@@ -263,13 +271,17 @@ def editItem(category_name, item_name):
         else:
             flash('You do not have the authorization to edit that item')
 
-        return redirect(url_for('showCategory', category_name=category_name, user=user))
+        return redirect(url_for(
+            'showCategory', category_name=category_name, user=user))
 
     else:
-        return render_template('update_item.html', user=user, category_name=category_name, item_name=editItem.title, editItem=editItem)
+        return render_template('update_item.html', user=user,
+                               category_name=category_name,
+                               item_name=editItem.title, editItem=editItem)
 
 
-@app.route('/<string:category_name>/delete/<string:item_name>', methods=['GET', 'POST'])
+@app.route('/<string:category_name>/delete/<string:item_name>',
+           methods=['GET', 'POST'])
 def deleteItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
@@ -284,15 +296,18 @@ def deleteItem(category_name, item_name):
             session.commit()
         else:
             flash('You do not have the authorization to delete that item')
-        return redirect(url_for('showCategory', category_name=category_name, user=user))
+        return redirect(url_for('showCategory',
+                                category_name=category_name, user=user))
 
     else:
-        return render_template('delete_item.html', user=user, category_name=category_name, item_name=deleteItem.title)
+        return render_template('delete_item.html', user=user,
+                               category_name=category_name,
+                               item_name=deleteItem.title)
 
 
-################################################################################
-#####                         Run App                                      #####
-################################################################################
+###############################################################################
+#                         Run App
+###############################################################################
 
 
 if __name__ == '__main__':
