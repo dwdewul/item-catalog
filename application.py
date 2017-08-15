@@ -155,7 +155,7 @@ def gdisconnect():
 
 def get_items(category_name):
     category = session.query(Category).filter_by(name=category_name).one()
-    items = session.query(Item).filter_by(category_id=category.id)
+    items = session.query(Item).filter_by(category_id=category.id).all()
     return items
 
 
@@ -176,6 +176,27 @@ def get_user_email():
         return login_session['email']
 
 ################################################################################
+#####                         JSON Endpoints                               #####
+################################################################################
+
+@app.route('/json')
+def catalogJSON():
+    categories = session.query(Category).all()
+    return jsonify([i.serialize for i in categories])
+
+
+@app.route('/<string:category_name>/json')
+def itemsJSON(category_name):
+    items = get_items(category_name)
+    return jsonify([i.serialize for i in items])
+
+
+@app.route('/<string:category_name>/<string:item_name>/json')
+def singleItemJSON(category_name, item_name):
+    item = get_single_item(category_name, item_name)
+    return jsonify([item.serialize])
+
+################################################################################
 #####                         Routing                                      #####
 ################################################################################
 
@@ -187,12 +208,6 @@ def showCatalog():
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.created_at.desc()).limit(6).all()
     return render_template('home.html', categories=categories, user=user, items=items)
-
-
-@app.route('/json')
-def catalogJSON():
-    items = session.query(Item).all()
-    return jsonify([i.serialize for i in items])
 
 
 @app.route('/<string:category_name>/items')
