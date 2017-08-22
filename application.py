@@ -20,7 +20,7 @@ import requests
 #                          Globals
 ###############################################################################
 app = Flask(__name__)
-engine = create_engine('sqlite:///category.db')
+engine = create_engine('postgresql://catalog:password@localhost/catalog')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -113,6 +113,16 @@ def gconnect():
     login_session['picture'] = data['picture']
     login_session['email'] = data['email']
 
+
+    q = session.query(User).filter_by(email=login_session['email']).first()
+    if not q:
+        new_user = User(email=login_session['email'],
+                        name=login_session['username'])
+        session.add(new_user)
+        session.commit()
+        print("Added user")
+        flash("Added to User base")
+
     flash("you are now logged in as {}".format(login_session['username']))
     return "Hello, {}".format(login_session['username'])
 
@@ -121,20 +131,20 @@ def gconnect():
 def gdisconnect():
     access_token = login_session.get('access_token')
     if access_token is None:
-        print 'Access Token is None'
+        # print 'Access Token is None'
         response = make_response(json.dumps(
             'Current user not connected.'), 401)
         response.headers['Content-Type'] = 'application/json'
         return response
-    print 'In gdisconnect access token is %s', access_token
-    print 'User name is: '
-    print login_session['username']
+    # print 'In gdisconnect access token is %s', access_token
+    # print 'User name is: '
+    # print login_session['username']
     url = ('https://accounts.google.com/o/oauth2/revoke?token=%s'
            % login_session['access_token'])
     h = httplib2.Http()
     result = h.request(url, 'GET')[0]
-    print 'result is '
-    print result
+    # print 'result is '
+    # print result
     if result['status'] == '200':
         del login_session['access_token']
         del login_session['gplus_id']
