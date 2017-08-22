@@ -217,44 +217,46 @@ def singleItemJSON(category_name, item_name):
 @app.route('/')
 @app.route('/home')
 def showCatalog():
-    user = login_session.get('username')
+    username = login_session.get('username')
     categories = session.query(Category).all()
     items = session.query(Item).order_by(Item.created_at.desc()).limit(6).all()
     return render_template(
-        'home.html', categories=categories, user=user, items=items)
+        'home.html', categories=categories, user=username, items=items)
 
 
 @app.route('/<string:category_name>/items')
 def showCategory(category_name):
-    user = login_session.get('username')
+    username = login_session.get('username')
     category = get_category(category_name)
     items = get_items(category_name)
     return render_template(
-        'items.html', category_name=category.name, items=items, user=user)
+        'items.html', category_name=category.name, items=items, user=username)
 
 
 @app.route('/<string:category_name>/create', methods=['GET', 'POST'])
 def createItem(category_name):
     if 'username' not in login_session:
         return redirect('/login')
-    user = login_session.get('username')
+    username = login_session.get('username')
+    user_id = session.query(User).filter_by(name=username).first()
     category = get_category(category_name)
+    print(user_id.id)
 
     if request.method == 'POST':
         newItem = Item(
             title=request.form['title'],
             description=request.form['description'],
             category_id=category.id,
-            user_id=login_session.get('email'))
+            user_id=user_id.id)
         session.add(newItem)
         session.commit()
 
         flash('Item {}'.format(newItem.title))
         return redirect(url_for(
-            'showCategory', category_name=category_name, user=user))
+            'showCategory', category_name=category_name, user=username))
     else:
         return render_template(
-            'create_item.html', category_name=category_name, user=user)
+            'create_item.html', category_name=category_name, user=username)
 
 
 @app.route('/<string:category_name>/edit/<string:item_name>',
@@ -263,13 +265,14 @@ def editItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
 
-    user = login_session.get('username')
+    username = login_session.get('username')
+    user_id = session.query(User).filter_by(name=username).first()
     u_email = get_user_email()
     category = get_category(category_name)
     editItem = get_single_item(category_name, item_name)
 
     if request.method == 'POST':
-        if u_email == editItem.user_id:
+        if user_id.id == editItem.user_id:
             if request.form['title']:
                 editItem.title = request.form['title']
 
@@ -282,10 +285,10 @@ def editItem(category_name, item_name):
             flash('You do not have the authorization to edit that item')
 
         return redirect(url_for(
-            'showCategory', category_name=category_name, user=user))
+            'showCategory', category_name=category_name, user=username))
 
     else:
-        return render_template('update_item.html', user=user,
+        return render_template('update_item.html', user=username,
                                category_name=category_name,
                                item_name=editItem.title, editItem=editItem)
 
@@ -295,22 +298,23 @@ def editItem(category_name, item_name):
 def deleteItem(category_name, item_name):
     if 'username' not in login_session:
         return redirect('/login')
-    user = login_session.get('username')
+    username = login_session.get('username')
+    user_id = session.query(User).filter_by(name=username).first()
     u_email = get_user_email()
     category = get_category(category_name)
     deleteItem = get_single_item(category_name, item_name)
 
     if request.method == 'POST':
-        if u_email == deleteItem.user_id:
+        if user_id.id == deleteItem.user_id:
             session.delete(deleteItem)
             session.commit()
         else:
             flash('You do not have the authorization to delete that item')
         return redirect(url_for('showCategory',
-                                category_name=category_name, user=user))
+                                category_name=category_name, user=username))
 
     else:
-        return render_template('delete_item.html', user=user,
+        return render_template('delete_item.html', user=username,
                                category_name=category_name,
                                item_name=deleteItem.title)
 

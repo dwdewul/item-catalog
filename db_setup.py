@@ -11,8 +11,8 @@ Base = declarative_base()
 
 class User(Base):
     __tablename__ = 'user'
-    # id = Column(Integer, primary_key=True)
-    email = Column(String(), primary_key=True)
+    id = Column(Integer, primary_key=True)
+    email = Column(String(300), unique=True)
     name = Column(String(100))
 
     @property
@@ -47,7 +47,7 @@ class Item(Base):
     created_at = Column(DateTime, default=datetime.datetime.utcnow)
     category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
-    user_id = Column(String(300), ForeignKey('user.email'))
+    user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
     @property
