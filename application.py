@@ -229,6 +229,7 @@ def showCategory(category_name):
     username = login_session.get('username')
     category = get_category(category_name)
     items = get_items(category_name)
+
     return render_template(
         'items.html', category_name=category.name, items=items, user=username)
 

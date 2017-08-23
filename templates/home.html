@@ -22,7 +22,7 @@
 </div>
 {% for x in items %}
 <div class="col-md-4 text-center">
-  <p><a href="#">{{x.title}}</a></p>
+  <p><a href="{{ url_for('showCategory', category_name=x.category.name )}}">{{x.title}}</a></p>
 </div>
 {% endfor %}
 

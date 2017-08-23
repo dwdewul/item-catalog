@@ -17,7 +17,6 @@ Create a new item
 <div class="col-md-12 text-center items">
   <h3>{{item.title}}</h3>
   <p>{{item.description}}</p>
-  <p>Posted by: {{item.user_id}}</p>
   <a href="{{url_for('editItem', category_name=item.category.name, item_name=item.title)}}"
     class="btn btn-primary">
     Edit
